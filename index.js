@@ -1,6 +1,7 @@
 //server
 const http = require('http');
 const app = require("express")();
+app.use(require("express").static(__dirname));
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 //the port we actually hold the page
 app.listen(9091, () => console.log("Listening on http port 9091"));
