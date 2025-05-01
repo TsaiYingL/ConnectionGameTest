@@ -10,18 +10,16 @@
 <body>
     <h1>Ball Game</h1>
 
-    <div id = "container">
-        <span id = "spnLeft">left</span>
-        <span id = "spnRight">right</span>
-    </div>
-
     <button id = 'btnCreate'>New Game</button>
     <button id = 'btnJoin'>Join Game</button>
     <input type = 'text' id = 'txtGameId'>
     <div id  = 'divPlayers'></div>
-    <div id  = 'divBoard'></div>
+    <p id = 'divGameId'></p>
+    <div id="container" style="display: none;">
+        <div id="spnLeft">Left: <span id="leftScore">10</span></div>
+        <div id="spnRight">Right: <span id="rightScore">10</span></div>
+    </div>
 
     <script src="client.js"></script>
-    <script src="ClickerGame.js"></script>
 </body>
 </html>

@@ -38,9 +38,9 @@ wsServer.on("request", request => {
             const gameId = guid();
             games[gameId] = {
                 "id": gameId,
-                "balls": 20,
+                "scores": { left: 10, right: 10 },
                 "clients": []
-            }
+            };
 
             const payLoad = {
                 "method": "create",
@@ -58,18 +58,18 @@ wsServer.on("request", request => {
             const game = games[gameId];
             //assign color to the player
             //tell us how many clients there are in the game (at most three clients, or it fails)
-            if(game.clients.length >= 3) {
+            if(game.clients.length >= 2) {
                 //max number of clients reached
                 return;
             }
-            const color = {"0": "Red", "1": "Green", "2": "Blue"}[game.clients.length]
+            const color = {"0": "Red", "1": "Blue"}[game.clients.length]
             game.clients.push({
                 "clientId": clientId,
                 "color": color
             })
 
-            //start the game if there are three clients
-            if(game.clients.length === 3){
+            //start the game if there are two clients
+            if(game.clients.length === 2){
                 updateGameState();
             }
 
@@ -87,7 +87,6 @@ wsServer.on("request", request => {
         if(result.method === "play") {
             const clientId = result.clientId;
             const gameId = result.gameId;
-            const ballId = result.ballId;
             const color = result.color;
             let state = games[gameId].state;
 
@@ -97,6 +96,41 @@ wsServer.on("request", request => {
 
             state[ballId] = color;
             games[gameId].state = state;
+        }
+
+        if (result.method === "click") {
+            const game = games[result.gameId];
+            const side = result.side; // "left" or "right"
+            const clientId = result.clientId;
+        
+            if (!game) return;
+        
+            const player = game.clients.find(c => c.clientId === clientId);
+            if (!player) return;
+        
+            // Define allowed actions
+            const allowed = (side === "left" && player.color === "Red") ||
+                            (side === "right" && player.color === "Blue");
+        
+            if (!allowed) {
+                console.log(`Blocked invalid click from ${player.color} on ${side}`);
+                return;
+            }
+        
+            if (game.scores && typeof game.scores[side] === 'number') {
+                game.scores[side]++;
+                const other = side === "left" ? "right" : "left";
+                game.scores[other]--;
+        
+                const payload = {
+                    method: "update",
+                    game
+                };
+        
+                game.clients.forEach(c => {
+                    clients[c.clientId].connection.send(JSON.stringify(payload));
+                });
+            }
         }
     });
 
@@ -122,10 +156,13 @@ wsServer.on("request", request => {
 
 //make a new client id for the client
 function S4() {
-    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    //return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    return Math.floor(Math.random() * 1000+1000);
 }
+
 const guid = () => {
-    return `${S4()}${S4()}-${S4()}-${S4()}-${S4()}-${S4()}${S4()}${S4()}`;
+    //return `${S4()}${S4()}-${S4()}-${S4()}-${S4()}-${S4()}${S4()}${S4()}`;
+    return `${S4()}`;
 };
 
 function updateGameState(){
